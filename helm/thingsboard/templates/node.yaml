@@ -66,7 +66,7 @@ spec:
           - name: TB_QUEUE_TYPE
             value: "kafka"
           - name: ZOOKEEPER_ENABLED
-            value: "true"
+            value: "{{ .Values.zookeeperEnabled | default "false" }}"
           - name: ZOOKEEPER_URL
             value: "{{ .Release.Name }}-zookeeper:{{ .Values.kafka.zookeeper.containerPorts.client }}"
           - name: TB_KAFKA_SERVERS
@@ -80,9 +80,11 @@ spec:
           - name: CACHE_TYPE
             value: "redis"
           - name: REDIS_HOST
-            value: "{{ .Release.Name }}-redis-master"
+            value: "{{ .Values.externalRedis.host | default (printf "%s-redis-master" .Release.Name) }}"
+          {{- if or (not .Values.externalRedis) .Values.redis.auth.password }}
           - name: REDIS_PASSWORD
-            value: "{{ .Values.redis.auth.password }}"
+            value: "{{ .Values.redis.auth.password }}"          
+          {{- end }}
           envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-node-db-config
